@@ -2,42 +2,42 @@ const Product = require('../models/Product')
 const Confectionery = require('../models/Confectionery')
 
 module.exports = {
+    
    // LISTAR TODOS OS PRODUTOS DO CONFEITEIRO
     async getProducts(req, res) {
         const { conf_id } = req.params
 
-        const  confectionery_id = await Confectionery.findByPk(conf_id)
-
-        if (!confectionery_id) {
-            return res.status(404).json({ error: 'Confetionery not found' })
-        }
-
-        Product.findAll({
-            where: {
-                confectionery_id: conf_id
-            }
-        }).then(product => {
-            return res.send(JSON.stringify(product, null, 4));
+        const confectionery = await Confectionery.findByPk(conf_id, {
+            include: {association: 'products'}
         })
+
+        return res.json(confectionery.products)
     },
 
     // CRIAR UM PRODUTO
     async store(req, res) {
         const { conf_id } = req.params
 
+        const {
+            name,
+            description,
+            price
+        } = req.body
+
         const confectionery = await Confectionery.findByPk(conf_id)
 
         if (!confectionery) {
-            return res.status(404).json({ error: 'Confetionery not found' })
+            return res.status(404).json({ error: 'Create product error' })
         }
 
-        const product_attributes = req.body
-
-        product_attributes.confectionery_id = Number(conf_id) 
-
-        const product = await Product.create(product_attributes)
-
-        return res.send(product)
+        await Product.create({ 
+            name: name, 
+            description: description, 
+            price: price, 
+            confectionery_id: conf_id 
+            }).then(() => {
+            return res.json({ message: 'Product created' })
+        })
     },
 
     // DELETAR UM PRODUTO
@@ -54,6 +54,7 @@ module.exports = {
                 id: prod_id
             }
         })
+    
         return res.send({message: 'Done'})
     },
 
@@ -66,16 +67,15 @@ module.exports = {
         if (!produto_id) 
             return res.status(404).json({ error: 'Product not found' })
 
-        Product.update(
-            { name: req.body.name, 
-              description: req.body.description,
-              price: req.body.price }, 
-            {
-                where: {
-                    id: prod_id
-                }
+        Product.update({ 
+            name: req.body.name, 
+            description: req.body.description,
+            price: req.body.price 
+        }, { 
+            where: {
+                id: prod_id
             }
-        ).then(() => {
+        }).then(() => {
             return res.json({message: 'Done'})
         })
     }
