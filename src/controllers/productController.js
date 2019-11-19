@@ -5,13 +5,23 @@ module.exports = {
     
    // LISTAR TODOS OS PRODUTOS DO CONFEITEIRO
     async getProducts(req, res) {
-        const { conf_id } = req.params
+       const { conf_id } = req.params
+        
+        await Confectionery.findByPk(conf_id, {
+            include: {
+                association: 'products'
+            } 
 
-        const confectionery = await Confectionery.findByPk(conf_id, {
-            include: {association: 'products'}
+        }).then(Conf => {
+            if (Conf) 
+                return res.json(Conf.products)
+        
+            else 
+                return res.status(404).json({ error: 'Confectionery not found' })
+
+        }).catch(() => {
+            return res.status(500).json({ error: 'Confectionery get error' })
         })
-
-        return res.json(confectionery.products)
     },
 
     // CRIAR UM PRODUTO
@@ -24,59 +34,61 @@ module.exports = {
             price
         } = req.body
 
-        const confectionery = await Confectionery.findByPk(conf_id)
-
-        if (!confectionery) {
-            return res.status(404).json({ error: 'Create product error' })
-        }
-
         await Product.create({ 
             name: name, 
             description: description, 
             price: price, 
             confectionery_id: conf_id 
-            }).then(() => {
-            return res.json({ message: 'Product created' })
+
+        }).then(() => {
+             return res.json({ message: 'Product created' })
+
+        }).catch(() => {
+            return res.status(500).json({ error: 'Create product error' })
         })
     },
 
     // DELETAR UM PRODUTO
     async delete(req, res) {
         const { prod_id } = req.params
-    
-        const product_id = await Product.findByPk(prod_id)
 
-        if (!product_id) 
-            return res.status(404).json({ error: 'Product not found' }) 
-
-        Product.destroy({
+        await Product.destroy({
             where: {
                 id: prod_id
             }
+
+        }).then(() => {
+            return res.json({message: 'Product deleted'})
+
+        }).catch(() => {
+            return res.json({ error: 'Delete product error' })
         })
-    
-        return res.send({message: 'Done'})
     },
 
-    // EDITAR O PRODUTO
+    // EDITAR O PRODUTO (ok)
     async edit(req, res) {
         const { prod_id } = req.params
 
-        const produto_id = await Product.findByPk(prod_id)
+        const {
+            name,
+            description,
+            price
+        } = req.body
 
-        if (!produto_id) 
-            return res.status(404).json({ error: 'Product not found' })
-
-        Product.update({ 
-            name: req.body.name, 
-            description: req.body.description,
-            price: req.body.price 
-        }, { 
-            where: {
+        await Product.update({
+            name,
+            description,
+            price
+        }, {
+            where: { 
                 id: prod_id
             }
+
         }).then(() => {
-            return res.json({message: 'Done'})
+            return res.json({ message: 'Product updated' })
+
+        }).catch(err => {
+            return res.status(500).json({ error: 'Update confectionery error' })
         })
     }
 }
