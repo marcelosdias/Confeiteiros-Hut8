@@ -14,6 +14,12 @@ class Product extends Model {
             foreignKey: 'confectionery_id', 
             as: 'confectionery' 
         })
+
+        this.belongsToMany(models.Unit, { 
+            foreignKey: 'product_id', 
+            through: 'product_units', 
+            as: 'units' 
+        })
     }
 }
 

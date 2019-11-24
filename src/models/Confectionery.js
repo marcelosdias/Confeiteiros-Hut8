@@ -8,8 +8,7 @@ class Confectionery extends Model {
             cpf: DataTypes.STRING,
             email: DataTypes.STRING,
             phone: DataTypes.STRING,
-            description: DataTypes.STRING,
-            password: DataTypes.STRING
+            description: DataTypes.STRING
         }, { sequelize })
     }
 
@@ -22,6 +21,17 @@ class Confectionery extends Model {
         this.hasMany(models.Product, { 
             foreignKey: 'confectionery_id', 
             as: 'products' 
+        })
+
+        this.hasOne(models.Password, {
+            foreignKey: 'confectionery_id',
+            as: 'password'
+        })
+
+        this.belongsToMany(models.Tag, { 
+            foreignKey: 'confectionery_id', 
+            through: 'conf_tags', 
+            as: 'tags'  
         })
     }
 }

@@ -2,30 +2,26 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-      return queryInterface.createTable('products', { 
+      return queryInterface.createTable('product_units', { 
         id: {
           type: Sequelize.INTEGER,
           primaryKey: true,
           autoIncrement: true,
           allowNull: false
         },
-        confectionery_id: {
+        product_id: {
           type: Sequelize.INTEGER,
           allowNull: false,
-          references: { model: 'confectioneries', key: 'id' },
+          references: { model: 'products', key: 'id' },
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
         },
-        name: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        description: {
-          type: Sequelize.STRING
-        },
-        price: {
-          type: Sequelize.FLOAT,
-          allowNull: false
+        unit_id: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          references: { model: 'units', key: 'id' },
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
         },
         created_at: {
           type: Sequelize.DATE,
@@ -39,6 +35,6 @@ module.exports = {
   },
 
   down: (queryInterface, Sequelize) => {
-      return queryInterface.dropTable('products');
+      return queryInterface.dropTable('product_units');
   }
 };

@@ -2,11 +2,15 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-      return queryInterface.createTable('products', { 
+      return queryInterface.createTable('passwords', { 
         id: {
           type: Sequelize.INTEGER,
           primaryKey: true,
           autoIncrement: true,
+          allowNull: false
+        },
+        password: {
+          type: Sequelize.STRING,
           allowNull: false
         },
         confectionery_id: {
@@ -15,17 +19,6 @@ module.exports = {
           references: { model: 'confectioneries', key: 'id' },
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
-        },
-        name: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        description: {
-          type: Sequelize.STRING
-        },
-        price: {
-          type: Sequelize.FLOAT,
-          allowNull: false
         },
         created_at: {
           type: Sequelize.DATE,
@@ -39,6 +32,6 @@ module.exports = {
   },
 
   down: (queryInterface, Sequelize) => {
-      return queryInterface.dropTable('products');
+      return queryInterface.dropTable('passwords');
   }
 };

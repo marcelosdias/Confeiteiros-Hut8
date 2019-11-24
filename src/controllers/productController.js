@@ -1,3 +1,4 @@
+const Unit = require('../models/Unit')
 const Product = require('../models/Product')
 const Confectionery = require('../models/Confectionery')
 
@@ -5,22 +6,25 @@ module.exports = {
     
    // LISTAR TODOS OS PRODUTOS DO CONFEITEIRO
     async getProducts(req, res) {
-       const { conf_id } = req.params
-        
-        await Confectionery.findByPk(conf_id, {
-            include: {
-                association: 'products'
-            } 
+        const { conf_id} = req.params
 
-        }).then(Conf => {
-            if (Conf) 
-                return res.json(Conf.products)
-        
-            else 
-                return res.status(404).json({ error: 'Confectionery not found' })
-
-        }).catch(() => {
-            return res.status(500).json({ error: 'Confectionery get error' })
+        await Product.findAll({
+            where: {
+                confectionery_id: conf_id
+            },
+            include: [
+                {
+                    model: Unit,
+                    as: 'units',
+                    through: { attributes: [] }
+                }
+            ]
+        })
+        .then((prod) => {
+            res.json(prod)
+        })
+        .catch(() => {
+            res.json({error: 'Confectionery not found'})
         })
     },
 
@@ -29,23 +33,33 @@ module.exports = {
         const { conf_id } = req.params
 
         const {
-            name,
-            description,
-            price
-        } = req.body
+             name,
+             description,
+             price,
+             unit
+         } = req.body
 
-        await Product.create({ 
-            name: name, 
-            description: description, 
-            price: price, 
-            confectionery_id: conf_id 
+         await Product.create({ 
+             name: name, 
+             description: description, 
+             price: price, 
+             confectionery_id: conf_id 
+         })
 
-        }).then(() => {
-             return res.json({ message: 'Product created' })
+         .then(async(prod) => {
+            const product = await Product.findByPk(prod.id)
 
-        }).catch(() => {
+            const unit_selected = await Unit.findAll({
+                where: { unit: unit }
+            })
+        
+            await product.addUnit(unit_selected)
+        
+            return res.json({ message: 'Product created' })
+         })
+         .catch(() =>{
             return res.status(500).json({ error: 'Create product error' })
-        })
+         }) 
     },
 
     // DELETAR UM PRODUTO
@@ -72,23 +86,31 @@ module.exports = {
         const {
             name,
             description,
-            price
+            price,
+            unit
         } = req.body
 
         await Product.update({
             name,
             description,
-            price
+            price,
         }, {
             where: { 
                 id: prod_id
             }
 
-        }).then(() => {
+        }).then(async() => {
+            const product = await Product.findByPk(prod_id)
+
+            const unit_selected = await Unit.findAll({
+                where: { unit: unit }
+            })
+            await product.addUnit(unit_selected)
+
             return res.json({ message: 'Product updated' })
 
-        }).catch(err => {
-            return res.status(500).json({ error: 'Update confectionery error' })
+        }).catch(()=> {
+            return res.status(500).json({ error: 'Update product error' })
         })
     }
 }
